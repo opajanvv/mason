@@ -42,26 +42,22 @@ if [ -z "$HOST" ]; then
     die "Hostname not specified. Usage: $0 --host <hostname>"
 fi
 
-# Prefer host-specific overrides, fallback to common
+# Override file paths
 HOST_OVERRIDES_FILE="$REPO_ROOT/hosts/$HOST/overrides.conf"
 COMMON_OVERRIDES_FILE="$REPO_ROOT/overrides.conf"
 HYPRLAND_CONFIG="$HOME/.config/hypr/hyprland.conf"
 
-# Determine which overrides file to use
-if [ -f "$HOST_OVERRIDES_FILE" ] && [ -s "$HOST_OVERRIDES_FILE" ]; then
-    OVERRIDES_FILE="$HOST_OVERRIDES_FILE"
-    log "Using host-specific overrides for $HOST"
-elif [ -f "$COMMON_OVERRIDES_FILE" ] && [ -s "$COMMON_OVERRIDES_FILE" ]; then
-    OVERRIDES_FILE="$COMMON_OVERRIDES_FILE"
+# Source common overrides first (shared across all hosts)
+if [ -f "$COMMON_OVERRIDES_FILE" ] && [ -s "$COMMON_OVERRIDES_FILE" ]; then
+    append_if_absent "$HYPRLAND_CONFIG" "source = $COMMON_OVERRIDES_FILE"
     log "Using common overrides"
-else
-    log "No overrides file found (skipping)"
-    exit 0
 fi
 
-# Append source line if not already present
-source_line="source = $OVERRIDES_FILE"
-append_if_absent "$HYPRLAND_CONFIG" "$source_line"
+# Source host-specific overrides on top (can override common settings)
+if [ -f "$HOST_OVERRIDES_FILE" ] && [ -s "$HOST_OVERRIDES_FILE" ]; then
+    append_if_absent "$HYPRLAND_CONFIG" "source = $HOST_OVERRIDES_FILE"
+    log "Using host-specific overrides for $HOST"
+fi
 
 log "Overrides installed successfully"
 

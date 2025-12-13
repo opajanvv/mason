@@ -24,7 +24,11 @@ read_packages() {
         case "$line" in
             \#*|"") continue ;;
         esac
-        echo "$line"
+
+        # Only include package if it's actually installed
+        if yay -Q "$line" >/dev/null 2>&1; then
+            echo "$line"
+        fi
     done < "$file"
 }
 

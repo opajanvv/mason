@@ -12,6 +12,7 @@ SCRIPTS_DIR="$SCRIPT_DIR/scripts"
 . "$SCRIPTS_DIR/helpers.sh"
 
 FORCE=false
+OFFLINE=false
 HOST=""
 
 # Parse command line arguments
@@ -21,12 +22,17 @@ while [ $# -gt 0 ]; do
             FORCE=true
             shift
             ;;
+        --offline)
+            OFFLINE=true
+            FORCE=true  # offline implies force (skip update check)
+            shift
+            ;;
         --host)
             HOST="$2"
             shift 2
             ;;
         *)
-            die "Unknown option: $1. Usage: $0 [-f|--force] [--host <hostname>]"
+            die "Unknown option: $1. Usage: $0 [-f|--force] [--offline] [--host <hostname>]"
             ;;
     esac
 done
@@ -38,23 +44,28 @@ fi
 
 log "Detected hostname: $HOST"
 
-# Check for updates if repo is a git checkout
+# Check for updates if repo is a git checkout (unless offline mode)
 HAS_UPDATES=false
 IS_GIT_REPO=false
 if [ -d "$SCRIPT_DIR/.git" ]; then
     IS_GIT_REPO=true
     cd "$SCRIPT_DIR"
-    # Check if there are updates before pulling
-    git fetch -q || true
-    current_head=$(git rev-parse HEAD || echo "")
-    remote_head=$(git rev-parse @{u} || echo "")
 
-    if [ -n "$current_head" ] && [ -n "$remote_head" ] && [ "$current_head" != "$remote_head" ]; then
-        HAS_UPDATES=true
-        log "Pulling latest changes from git repository..."
-        git pull || warn "Failed to pull updates, continuing anyway"
+    if [ "$OFFLINE" = "true" ]; then
+        log "Offline mode: skipping git fetch/pull"
     else
-        log "Repository is already up to date"
+        # Check if there are updates before pulling
+        git fetch -q || true
+        current_head=$(git rev-parse HEAD || echo "")
+        remote_head=$(git rev-parse @{u} || echo "")
+
+        if [ -n "$current_head" ] && [ -n "$remote_head" ] && [ "$current_head" != "$remote_head" ]; then
+            HAS_UPDATES=true
+            log "Pulling latest changes from git repository..."
+            git pull || warn "Failed to pull updates, continuing anyway"
+        else
+            log "Repository is already up to date"
+        fi
     fi
 fi
 

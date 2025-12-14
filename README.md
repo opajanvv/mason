@@ -6,6 +6,8 @@ JanStrap automates the setup and maintenance of multiple workstations in a homel
 
 > **Note:** This is a template repository. Use the "Use this template" button on GitHub to create your own independent copy.
 
+> **Example:** See [opajanvv/mystrap](https://github.com/opajanvv/mystrap) for a working implementation with encrypted secrets, Google Drive sync, and automatic dotfile syncing.
+
 ## Credits
 
 Inspired by and based on the YouTube video ["You installed Omarchy, Now What?"](https://www.youtube.com/watch?v=d23jFJmcaMI) by **typecraft**. Source: [typecraft-dev/omarchy-supplement](https://github.com/typecraft-dev/omarchy-supplement).
